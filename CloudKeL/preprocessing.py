@@ -16,7 +16,7 @@ class EdgeData(object):
         self.edgeLabel = edgeLabel
 
 class Graph(object):
-    def __init__(self, label:int, vertex_list=[], edge_list={}) -> None:
+    def __init__(self, label:int, vertex_list=[], edge_list={}, is_directed=False) -> None:
         '''
         Graph data, which is a collection of EdgeData.
         Attributes:
@@ -28,10 +28,14 @@ class Graph(object):
 
             label: int,
             The class label of the graph.
+
+            is_directed: boolean,
+            The graph is digraph or not.
         '''
         self.label = label
         self.vertex_list = vertex_list
         self.edge_list = edge_list
+        self.is_directed = is_directed
 
     @property
     def vertex_num(self):
@@ -68,7 +72,13 @@ class Graph(object):
         P = np.zeros((self.vertex_num, self.vertex_num))
         for (i,j), _ in self.edge_list.items():
             P[i,j] = 1
-        P += P.T 
+        # If the graph is directed, the edge_list will cover all the edges.
+        # When the graph is undirected, we consider only half of the edges (i->j, i<j),
+        # and add P by its transpose for efficiency.
+        # Since we do not allow self-loop, the diagonal elements will stay 0.
+        if not self.is_directed:
+            P += P.T
+
         degree_list = P.sum(axis=0)
         if integral is False:
             return P/degree_list
@@ -84,7 +94,8 @@ class Graph(object):
         X = np.zeros((n, n), dtype=__ELEMENT_TYPE__)
         for (i, j), edgeLabel in self.edge_list.items():
             X[i,j] = edgeLabel
-        return X + X.T       
+        # return X + X.T
+        return X
 
 def cox_data_processor(
         adj_file:str,
