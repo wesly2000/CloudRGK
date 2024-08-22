@@ -23,7 +23,12 @@ def get_sparse(X:np.ndarray):
     '''
     dtype_check(X)
     n = X.shape[0]
-    sparse = [(i, j) for (i, j) in combinations(range(n), 2) if X[i,j]==0]
+    sparse = []
+    for i, j in combinations(range(n), 2):
+        if X[i, j] == 0:
+            sparse.append((i, j))
+        if X[j, i] == 0:
+            sparse.append((j, i))
     return sparse
 
 def matrix_correction(W:np.ndarray, sparse_1, sparse_2, n_1, n_2):

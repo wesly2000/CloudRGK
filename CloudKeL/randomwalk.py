@@ -103,7 +103,8 @@ class RandomWalkKernel():
         T = np.kron(P_1, P_2) * delta_kernel_kronecker_product(X_1, X_2)
         I = np.eye(T.shape[0])
         sparse = csc_matrix(I-T)
-        similarity = inv(sparse).sum() + self.vertex_similarity_measure(G_1.vertex_list, G_2.vertex_list)
+        # similarity = inv(sparse).sum() + self.vertex_similarity_measure(G_1.vertex_list, G_2.vertex_list)
+        similarity = inv(sparse).sum()
         return similarity
     
     def perform(self, graphs):
@@ -282,31 +283,31 @@ def graph_upload(G:Graph, ID:int, shift:int, matrix_key:np.int64, sparse_key:byt
     )
     return graph
 
-def feature_matrix_upload(X:np.ndarray, shift:np.int64, key:np.int64):
-    '''
-    The contributor encrypts the graph feature matrix and upload it 
-    to the Cloud.
-    '''
-    shifted_matrix = matrix_confusion(X, shift)
-    encrypted_matrix = xor_encryption(shifted_matrix, key)
-    return encrypted_matrix
+# def feature_matrix_upload(X:np.ndarray, shift:np.int64, key:np.int64):
+#     '''
+#     The contributor encrypts the graph feature matrix and upload it
+#     to the Cloud.
+#     '''
+#     shifted_matrix = matrix_confusion(X, shift)
+#     encrypted_matrix = xor_encryption(shifted_matrix, key)
+#     return encrypted_matrix
 
-def sparse_upload(sparse, key):
-    '''
-    Encrypt sparse(tuple list) of a graph, and upload it to the Cloud.
-    '''
-    encrypted_sparse, tag, nonce = byte_stream_encryption(
-                            byte_stream=tuple_list_encoder(sparse),
-                            key=key
-    ) 
-    return (encrypted_sparse, tag, nonce)
-
-def edge_upload(edge_index, key):
-    '''
-    Encrypt edge indices(tuple list) of a graph, and upload it to the Cloud.
-    '''
-    encrypted_edge, tag, nonce = byte_stream_encryption(
-                            byte_stream=tuple_list_encoder(edge_index),
-                            key=key
-    ) 
+# def sparse_upload(sparse, key):
+#     '''
+#     Encrypt sparse(tuple list) of a graph, and upload it to the Cloud.
+#     '''
+#     encrypted_sparse, tag, nonce = byte_stream_encryption(
+#                             byte_stream=tuple_list_encoder(sparse),
+#                             key=key
+#     )
+#     return (encrypted_sparse, tag, nonce)
+#
+# def edge_upload(edge_index, key):
+#     '''
+#     Encrypt edge indices(tuple list) of a graph, and upload it to the Cloud.
+#     '''
+#     encrypted_edge, tag, nonce = byte_stream_encryption(
+#                             byte_stream=tuple_list_encoder(edge_index),
+#                             key=key
+#     )
     

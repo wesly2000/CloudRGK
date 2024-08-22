@@ -47,6 +47,21 @@ class Graph(object):
         # The number of edges in the graph.
         return len(self.edge_list)
 
+    def __eq__(self, other):
+        if not isinstance(other, Graph):
+            return False
+        return (self.label == other.label and
+                self.vertex_list == other.vertex_list and
+                self.edge_list == other.edge_list)
+
+    def __str__(self):
+        return (
+                "Graph data with {} vertices and {} edges:\n".format(self.vertex_num, self.edge_num) +
+                "Label: {}\n".format(self.label) +
+                "Vertex list: {},\n".format(self.vertex_list) +
+                "Edge list: {}, \n".format(self.edge_list)
+                )
+
     def build_transition_matrix(self, integral=False):
         '''
         Compute the probability transition matrix of @g. When @integral is
@@ -76,8 +91,8 @@ class Graph(object):
         # When the graph is undirected, we consider only half of the edges (i->j, i<j),
         # and add P by its transpose for efficiency.
         # Since we do not allow self-loop, the diagonal elements will stay 0.
-        if not self.is_directed:
-            P += P.T
+        # if not self.is_directed:
+        #     P += P.T
 
         degree_list = P.sum(axis=0)
         if integral is False:
@@ -165,7 +180,6 @@ def cox_data_processor(
                           vertex_list=[],
                           edge_list={})
 
-
         # used to shift node number to origin node number
         # For example, in adj_data, there is an edge (97, 96) belonging to Graph 2,
         # and Graph 1 has 77 vertices. Then Vertex 97 is actually Vertex 20 in Graph 2.
@@ -176,10 +190,10 @@ def cox_data_processor(
         while graph_indicator_data[node_idx-1] == graph_idx+1:
             graph.vertex_list.append(node_label_data[node_idx-1])
             node_idx += 1
-            if node_idx-1 >= total_node_num:
+            if node_idx > total_node_num:
                 break
 
-        while adj_data.iloc[edge_idx]['src'] < node_idx:
+        while adj_data.iloc[edge_idx]['src'] <= node_idx-1:
             i, j = adj_data.iloc[edge_idx]['src'], adj_data.iloc[edge_idx]['dst']
             if i == j:
                 raise Exception('{}=={}, but self-loop is not allowed.'.format(
@@ -187,9 +201,9 @@ def cox_data_processor(
                 ))
             # We need to shift i by -1 because i-th vertex in adj_data
             # is actually (i-1)-th vetex in node_label_data.
-            edgeLabel = edge_label_data[edge_idx//2]
+            edgeLabel = edge_label_data[edge_idx]
             graph.edge_list[(i-node_shift, j-node_shift)] = edgeLabel
-            edge_idx += 2
+            edge_idx += 1
             if edge_idx >= total_edge_num:
                 break
 
