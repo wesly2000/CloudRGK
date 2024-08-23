@@ -44,33 +44,14 @@ def cox_single_graph_hash(graph: Graph):
     '''
     
     hash_edge = {}
-    if graph.is_directed:
-        for (i,j), edgeLabel in graph.edge_list.items():
-            hash_edge[(i,j)] = hash(
-                (
-                    graph.vertex_list[i],
-                    graph.vertex_list[j],
-                    edgeLabel
-                )
+    for (i,j), edgeLabel in graph.edge_list.items():
+        hash_edge[(i,j)] = hash(
+            (
+                graph.vertex_list[i],
+                edgeLabel,
+                graph.vertex_list[j]
             )
-    else:
-        for (i,j), edgeLabel in graph.edge_list.items():
-            # Note that the original data only contains the (i->j, i<j) edges only.
-            # Therefore, we need to manually consider the (j->i) cases.
-            hash_edge[(i,j)] = hash(
-                (
-                    graph.vertex_list[i],
-                    graph.vertex_list[j],
-                    edgeLabel
-                )
-            )
-            hash_edge[(j,i)] = hash(
-                (
-                    graph.vertex_list[j],
-                    graph.vertex_list[i],
-                    edgeLabel
-                )
-            )
+        )
     hash_graph = Graph(label=graph.label, vertex_list=graph.vertex_list, edge_list=hash_edge)
     return hash_graph
 

@@ -16,7 +16,7 @@ class EdgeData(object):
         self.edgeLabel = edgeLabel
 
 class Graph(object):
-    def __init__(self, label:int, vertex_list=[], edge_list={}, is_directed=False) -> None:
+    def __init__(self, label:int, vertex_list=[], edge_list={}) -> None:
         '''
         Graph data, which is a collection of EdgeData.
         Attributes:
@@ -35,7 +35,6 @@ class Graph(object):
         self.label = label
         self.vertex_list = vertex_list
         self.edge_list = edge_list
-        self.is_directed = is_directed
 
     @property
     def vertex_num(self):
