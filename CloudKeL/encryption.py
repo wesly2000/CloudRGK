@@ -5,17 +5,40 @@ from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from scipy.sparse import csc_matrix
 
+from typing import Callable
+
 from .constant import __ELEMENT_TYPE__, __INDEX_TYPE__, __RECOVER_STEP__
 
-def matrix_confusion(X:np.ndarray, shift=1):
+def matrix_confusion(X:np.ndarray, ind: Callable[[int, int, int, int], int], shift=1):
     '''
-    Confuse the feature matrix to avoid 0-recognizing attack, 
-    the confusing process is performed by shifting the amount @shift.
+    Confuse the matrix from both 0-element inference attack and frequency analysis attack.
+
+    Args:
+        X : np.ndarray
+            The array to be confused.
+        ind : Callable[[int, int, int, int], int]
+            The confusion mode on zero entries.
+        shift : int
+            The secrecy, used as the salt of @ind.
     '''
-    dtype_check(X)
-    N = X.shape[0]
-    I = np.eye(N, dtype=X.dtype)
-    return X + shift - shift*I
+    # NOTE: The matrix confusion was found vulnerable to frequency analysis attack. Therefore, the original
+    # matrix confusion mechanism was deprecated. (2024/09/13)
+    # dtype_check(X)
+    # N = X.shape[0]
+    # I = np.eye(N, dtype=X.dtype)
+    # return X + shift - shift*I
+
+    # In the new implementation, this function requires a functional param that is a bijection ind: N * N -> N.
+    # With ind, the confusing mechanism maps each entry position to a unique number. Therefore, the zero entries
+    # could defend frequency analysis.
+    n = X.shape[0]
+    for (i, j) in combinations(range(n), 2):
+        if X[i, j] == 0:
+            X[i, j] = ind(i, j, n, shift)
+        if X[j, i] == 0:
+            X[j, i] = ind(j, i, n, shift)
+    return X
+
 
 def get_sparse(X:np.ndarray):
     '''

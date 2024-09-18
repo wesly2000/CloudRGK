@@ -3,10 +3,10 @@ Random Walk Graph Kernel module.
 '''
 
 import numpy as np
-# from numpy.linalg import inv
+from numpy.linalg import inv
 from itertools import combinations, combinations_with_replacement
 from scipy.sparse import csc_matrix
-from scipy.sparse.linalg import inv
+# from scipy.sparse.linalg import inv
 from numpy.linalg import inv as dense_inv
 
 from CloudKeL.preprocessing import Graph
@@ -102,9 +102,10 @@ class RandomWalkKernel():
         X_1, X_2 = G_1.build_feature_matrix(), G_2.build_feature_matrix()
         T = np.kron(P_1, P_2) * delta_kernel_kronecker_product(X_1, X_2)
         I = np.eye(T.shape[0])
-        sparse = csc_matrix(I-T)
+        # sparse = csc_matrix(I-T)
         # similarity = inv(sparse).sum() + self.vertex_similarity_measure(G_1.vertex_list, G_2.vertex_list)
-        similarity = inv(sparse).sum()
+        # similarity = inv(sparse).sum()
+        similarity = inv(I-T).sum()
         return similarity
     
     def perform(self, graphs):
