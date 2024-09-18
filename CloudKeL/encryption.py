@@ -58,13 +58,30 @@ def matrix_correction(W:np.ndarray, sparse_1, sparse_2, n_1, n_2):
     '''
     Correct the wrong entries due to the matrix confusion.
     '''
+    # Correct delta(DZ, D'Z)
     for i in range(n_1):
         for (k, l) in sparse_2:
-            W[i*n_2+k, i*n_2+l] = W[i*n_2+l, i*n_2+k] = 1
+            W[i*n_1 + k, i*n_2 + l] = 1
 
     for k in range(n_2):
         for (i, j) in sparse_1:
-            W[i*n_2+k, j*n_2+k] = W[j*n_2+k, i*n_2+k] = 1
+            W[i*n_1 + k, j*n_2 + k] = 1
+
+    # Correct delta(D'Z, D'Z)
+    for (i, j) in sparse_1:
+        for (k, l) in sparse_2:
+            W[i*n_1 + k, j*n_2 + l] = 1
+
+    # Correct delta(D'Z, D'Z')
+    for (i, j) in sparse_1:
+        for (k, l) in combinations(n_2, 2):
+            if (k, l) not in sparse_2:
+                W[i*n_1 + k, j*n_2 + l] = 0
+
+    for (k, l) in sparse_2:
+        for (i, j) in combinations(n_1, 2):
+            if (i, j) not in sparse_1:
+                W[i*n_1 + k, j*n_2 + l] = 0
 
     return W
 

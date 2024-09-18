@@ -4,7 +4,7 @@ Random Walk Graph Kernel module.
 
 import numpy as np
 from numpy.linalg import inv
-from itertools import combinations, combinations_with_replacement
+from itertools import combinations, combinations_with_replacement, product
 from scipy.sparse import csc_matrix
 # from scipy.sparse.linalg import inv
 from numpy.linalg import inv as dense_inv
@@ -240,16 +240,30 @@ def delta_kernel_kronecker_product(X_1:np.ndarray, X_2:np.ndarray):
     '''
     Kronecker product between Phi(X_1), Phi(X_2).
     '''
+    # n_1, n_2 = X_1.shape[0], X_2.shape[0]
+    # X_kron= np.zeros((n_1*n_2, n_1*n_2), dtype=int)
+    # for (i, j) in combinations_with_replacement(range(n_1),2):
+    #     x_i_j = X_1[i,j] # Avoid repetitive indexing.
+    #     for (k, l) in combinations_with_replacement(range(n_2), 2):
+    #         X_kron[i*n_2+k, j*n_2+l] = \
+    #         X_kron[i*n_2+l, j*n_2+k] = \
+    #         X_kron[j*n_2+k, i*n_2+l] = \
+    #         X_kron[j*n_2+l, i*n_2+k] = \
+    #         delta_kernel(x_i_j, X_2[k,l])
+    #
+    # return X_kron
+    dtype_check(X_1)
+    dtype_check(X_2)
     n_1, n_2 = X_1.shape[0], X_2.shape[0]
-    X_kron= np.zeros((n_1*n_2, n_1*n_2), dtype=int)
-    for (i, j) in combinations_with_replacement(range(n_1),2):
-        x_i_j = X_1[i,j] # Avoid repetitive indexing.
+    X_kron = np.zeros((n_1 * n_2, n_1 * n_2), dtype=np.int64)
+    for (i, j) in combinations_with_replacement(range(n_1), 2):
+        x_i_j = X_1[i, j]
+        x_j_i = X_1[j, i] # Avoid repetitive indexing.
         for (k, l) in combinations_with_replacement(range(n_2), 2):
-            X_kron[i*n_2+k, j*n_2+l] = \
-            X_kron[i*n_2+l, j*n_2+k] = \
-            X_kron[j*n_2+k, i*n_2+l] = \
-            X_kron[j*n_2+l, i*n_2+k] = \
-            delta_kernel(x_i_j, X_2[k,l])
+            X_kron[i * n_2 + k, j * n_2 + l] = delta_kernel(x_i_j, X_2[k, l])
+            X_kron[j * n_2 + k, i * n_2 + l] = delta_kernel(x_j_i, X_2[k, l])
+            X_kron[i * n_2 + l, j * n_2 + k] = delta_kernel(x_i_j, X_2[l, k])
+            X_kron[j * n_2 + l, i * n_2 + k] = delta_kernel(x_j_i, X_2[l, k])
 
     return X_kron
 
