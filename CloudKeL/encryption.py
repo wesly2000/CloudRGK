@@ -32,12 +32,13 @@ def matrix_confusion(X:np.ndarray, ind: Callable[[int, int, int, int], int], shi
     # With ind, the confusing mechanism maps each entry position to a unique number. Therefore, the zero entries
     # could defend frequency analysis.
     n = X.shape[0]
+    confused_X = np.copy(X)  # A (deep) copy of X.
     for (i, j) in combinations(range(n), 2):
         if X[i, j] == 0:
-            X[i, j] = ind(i, j, n, shift)
+            confused_X[i, j] = ind(i, j, n, shift)
         if X[j, i] == 0:
-            X[j, i] = ind(j, i, n, shift)
-    return X
+            confused_X[j, i] = ind(j, i, n, shift)
+    return confused_X
 
 
 def get_sparse(X:np.ndarray):
@@ -61,27 +62,31 @@ def matrix_correction(W:np.ndarray, sparse_1, sparse_2, n_1, n_2):
     # Correct delta(DZ, D'Z)
     for i in range(n_1):
         for (k, l) in sparse_2:
-            W[i*n_1 + k, i*n_2 + l] = 1
+            W[i*n_2 + k, i*n_2 + l] = 1
 
     for k in range(n_2):
         for (i, j) in sparse_1:
-            W[i*n_1 + k, j*n_2 + k] = 1
+            W[i*n_2 + k, j*n_2 + k] = 1
 
     # Correct delta(D'Z, D'Z)
     for (i, j) in sparse_1:
         for (k, l) in sparse_2:
-            W[i*n_1 + k, j*n_2 + l] = 1
+            W[i*n_2 + k, j*n_2 + l] = 1
 
     # Correct delta(D'Z, D'Z')
     for (i, j) in sparse_1:
-        for (k, l) in combinations(n_2, 2):
+        for (k, l) in combinations(range(n_2), 2):
             if (k, l) not in sparse_2:
-                W[i*n_1 + k, j*n_2 + l] = 0
+                W[i*n_2 + k, j*n_2 + l] = 0
+            if (l, k) not in sparse_2:
+                W[i*n_2 + l, j*n_2 + k] = 0
 
     for (k, l) in sparse_2:
-        for (i, j) in combinations(n_1, 2):
+        for (i, j) in combinations(range(n_1), 2):
             if (i, j) not in sparse_1:
-                W[i*n_1 + k, j*n_2 + l] = 0
+                W[i*n_2 + k, j*n_2 + l] = 0
+            if (j, i) not in sparse_1:
+                W[j*n_2 + k, i*n_2 + l] = 0
 
     return W
 
