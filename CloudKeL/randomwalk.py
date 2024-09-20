@@ -155,10 +155,27 @@ class CloudRandomWalkKernel(RandomWalkKernel):
                             tag=G_2.sparse_info[1],
                             nonce=G_2.sparse_info[2]
             ))
+
+        edge_1 = tuple_list_decoder(byte_stream_decryption(
+                            key=edge_key,
+                            ciphertext=G_1.edge_info[0],
+                            tag=G_1.edge_info[1],
+                            nonce=G_1.edge_info[2]
+        ))
+
+        edge_2 = tuple_list_decoder(byte_stream_decryption(
+                            key=edge_key,
+                            ciphertext=G_2.edge_info[0],
+                            tag=G_2.edge_info[1],
+                            nonce=G_2.edge_info[2]
+        ))
+
         W = matrix_correction(
                         W=Confused_W, 
                         sparse_1=sparse_1, 
-                        sparse_2=sparse_2, 
+                        sparse_2=sparse_2,
+                        edge_1=edge_1,
+                        edge_2=edge_2,
                         n_1=G_1.N, 
                         n_2=G_2.N
             )
@@ -173,10 +190,11 @@ class CloudRandomWalkKernel(RandomWalkKernel):
                                 matrix_key_1):
         T = self.similarity_matrix(G_1, G_2, sparse_key, edge_key)
         I = np.eye(T.shape[0])
-        sparse = csc_matrix(I-T)
-        sparse_enc, A, B = matrix_encryption(sparse, matrix_key_0, matrix_key_1)
+        # sparse = csc_matrix(I-T)
+        sparse_enc, A, B = matrix_encryption(I-T, matrix_key_0, matrix_key_1)
         sparse_enc_inv = inv(sparse_enc)
-        similarity = matrix_decryption(sparse_enc_inv, B, A).sum() + self.vertex_similarity_measure(G_1.vertex_info, G_2.vertex_info)
+        # similarity = matrix_decryption(sparse_enc_inv, B, A).sum() + self.vertex_similarity_measure(G_1.vertex_info, G_2.vertex_info)
+        similarity = matrix_decryption(sparse_enc_inv, B, A).sum()
         return similarity
     
     def perform(self, graphs, sparse_key:bytes, edge_key:bytes, matrix_key_0, matrix_key_1):
@@ -186,7 +204,8 @@ class CloudRandomWalkKernel(RandomWalkKernel):
         '''
         n = len(graphs)
         K = np.zeros((n, n))
-        for (i,j) in combinations_with_replacement(range(len(graphs)), 2):
+        for (i,j) in combinations_with_replacement(range(n), 2):
+            print("Measuring ({}, {}) similarity, total {} graphs.".format(i, j, n))
             K[i, j] = K[j, i] = self.pair_similarity_measure(
                                             G_1=graphs[i], 
                                             G_2=graphs[j], 
@@ -267,14 +286,14 @@ def delta_kernel_kronecker_product(X_1:np.ndarray, X_2:np.ndarray):
 
     return X_kron
 
-def graph_upload(G:Graph, ID:int, shift:int, matrix_key:np.int64, sparse_key:bytes, edge_key:bytes):
+def graph_upload(G:Graph, ID:int, ind:Callable[[int,int,int,int], int], shift:int, matrix_key:np.int64, sparse_key:bytes, edge_key:bytes):
     feature_matrix = G.build_feature_matrix()
     sparse = get_sparse(feature_matrix)
     edge_index = [(i,j) for (i,j) in G.edge_list.keys()]
     # DES(AES)加密sparse序列(转换为字节流)
 
     encrypted_matrix = xor_encryption(
-                            X=matrix_confusion(feature_matrix, shift),
+                            X=matrix_confusion(feature_matrix, ind, shift),
                             key=matrix_key
     )
 
@@ -287,7 +306,7 @@ def graph_upload(G:Graph, ID:int, shift:int, matrix_key:np.int64, sparse_key:byt
                             key=edge_key
     )
     vertex_list = np.array(G.vertex_list, dtype=__ELEMENT_TYPE__)
-    encrypted_vertex = vertex_encryption(vertex_list, key=matrix_key)
+    # encrypted_vertex = vertex_encryption(vertex_list, key=matrix_key)
     graph = CloudGraph(
             ID=ID,
             label=G.label,
