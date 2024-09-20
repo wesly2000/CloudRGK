@@ -62,7 +62,7 @@ class CloudGraph(Graph):
         P = np.zeros(shape=(self.N, self.N))
         for (i, j) in edge_index:
             P[i,j] = 1
-        P += P.T 
+        # P += P.T
         degree_list = P.sum(axis=0)
         return P/degree_list
     
@@ -121,7 +121,6 @@ class RandomWalkKernel():
         return K
     
     def transform(self, train_graphs, test_graphs):
-        ''''''
         m, n = len(test_graphs), len(train_graphs)
         K = np.zeros((m, n))
         for i, test_graph in enumerate(test_graphs):
