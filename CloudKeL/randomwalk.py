@@ -204,7 +204,7 @@ class CloudRandomWalkKernel(RandomWalkKernel):
         n = len(graphs)
         K = np.zeros((n, n))
         for (i,j) in combinations_with_replacement(range(n), 2):
-            print("Measuring ({}, {}) similarity, total {} graphs.".format(i, j, n))
+            # print("Measuring ({}, {}) similarity, total {} graphs.".format(i, j, n))
             K[i, j] = K[j, i] = self.pair_similarity_measure(
                                             G_1=graphs[i], 
                                             G_2=graphs[j], 
@@ -252,7 +252,7 @@ def gaussian_kernel_kronecker_product(X_1:np.ndarray, X_2:np.ndarray, sigma=.1):
     return X_kron
 
 def delta_kernel(x_1, x_2):
-    return int(x_1 == x_2)
+    return x_1 == x_2
 
 def delta_kernel_kronecker_product(X_1:np.ndarray, X_2:np.ndarray):
     '''
@@ -274,14 +274,9 @@ def delta_kernel_kronecker_product(X_1:np.ndarray, X_2:np.ndarray):
     dtype_check(X_2)
     n_1, n_2 = X_1.shape[0], X_2.shape[0]
     X_kron = np.zeros((n_1 * n_2, n_1 * n_2), dtype=np.int64)
-    for (i, j) in combinations_with_replacement(range(n_1), 2):
+    for (i, j) in product(range(n_1), repeat=2):
         x_i_j = X_1[i, j]
-        x_j_i = X_1[j, i] # Avoid repetitive indexing.
-        for (k, l) in combinations_with_replacement(range(n_2), 2):
-            X_kron[i * n_2 + k, j * n_2 + l] = delta_kernel(x_i_j, X_2[k, l])
-            X_kron[j * n_2 + k, i * n_2 + l] = delta_kernel(x_j_i, X_2[k, l])
-            X_kron[i * n_2 + l, j * n_2 + k] = delta_kernel(x_i_j, X_2[l, k])
-            X_kron[j * n_2 + l, i * n_2 + k] = delta_kernel(x_j_i, X_2[l, k])
+        X_kron[i*n_2:(i+1)*n_2, j*n_2:(j+1)*n_2] = delta_kernel(x_i_j, X_2)
 
     return X_kron
 
