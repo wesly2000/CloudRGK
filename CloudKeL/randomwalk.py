@@ -6,7 +6,7 @@ import numpy as np
 from numpy.linalg import inv
 from itertools import combinations, combinations_with_replacement, product
 from scipy.sparse import csc_matrix
-# from scipy.sparse.linalg import inv
+# from scipy.sparse.linalg import inv as sparse_inv
 from numpy.linalg import inv as dense_inv
 
 from CloudKeL.preprocessing import Graph
@@ -258,27 +258,28 @@ def delta_kernel_kronecker_product(X_1:np.ndarray, X_2:np.ndarray):
     '''
     Kronecker product between Phi(X_1), Phi(X_2).
     '''
-    # n_1, n_2 = X_1.shape[0], X_2.shape[0]
-    # X_kron= np.zeros((n_1*n_2, n_1*n_2), dtype=int)
-    # for (i, j) in combinations_with_replacement(range(n_1),2):
-    #     x_i_j = X_1[i,j] # Avoid repetitive indexing.
-    #     for (k, l) in combinations_with_replacement(range(n_2), 2):
-    #         X_kron[i*n_2+k, j*n_2+l] = \
-    #         X_kron[i*n_2+l, j*n_2+k] = \
-    #         X_kron[j*n_2+k, i*n_2+l] = \
-    #         X_kron[j*n_2+l, i*n_2+k] = \
-    #         delta_kernel(x_i_j, X_2[k,l])
-    #
-    # return X_kron
-    dtype_check(X_1)
-    dtype_check(X_2)
     n_1, n_2 = X_1.shape[0], X_2.shape[0]
-    X_kron = np.zeros((n_1 * n_2, n_1 * n_2), dtype=np.int64)
-    for (i, j) in product(range(n_1), repeat=2):
-        x_i_j = X_1[i, j]
-        X_kron[i*n_2:(i+1)*n_2, j*n_2:(j+1)*n_2] = delta_kernel(x_i_j, X_2)
+    X_kron= np.zeros((n_1*n_2, n_1*n_2), dtype=int)
+    for (i, j) in combinations_with_replacement(range(n_1),2):
+        x_i_j = X_1[i,j]  # Avoid repetitive indexing.
+        x_j_i = X_1[j,i]  # Avoid repetitive indexing.
+        for (k, l) in combinations_with_replacement(range(n_2), 2):
+            x_k_l, x_l_k = X_2[k,l], X_2[l,k]
+            X_kron[i*n_2+k, j*n_2+l] = delta_kernel(x_i_j, x_k_l)
+            X_kron[i*n_2+l, j*n_2+k] = delta_kernel(x_i_j, x_l_k)
+            X_kron[j*n_2+k, i*n_2+l] = delta_kernel(x_j_i, x_k_l)
+            X_kron[j*n_2+l, i*n_2+k] = delta_kernel(x_j_i, x_l_k)
 
     return X_kron
+    # dtype_check(X_1)
+    # dtype_check(X_2)
+    # n_1, n_2 = X_1.shape[0], X_2.shape[0]
+    # X_kron = np.zeros((n_1 * n_2, n_1 * n_2), dtype=np.int64)
+    # for (i, j) in product(range(n_1), repeat=2):
+    #     x_i_j = X_1[i, j]
+    #     X_kron[i*n_2:(i+1)*n_2, j*n_2:(j+1)*n_2] = delta_kernel(x_i_j, X_2)
+    #
+    # return X_kron
 
 def graph_upload(G:Graph, ID:int, ind:Callable[[int,int,int,int], int], shift:int, matrix_key:np.int64, sparse_key:bytes, edge_key:bytes):
     feature_matrix = G.build_feature_matrix()
