@@ -7,6 +7,7 @@ import warnings
 
 from .constant import __ELEMENT_TYPE__
 
+
 class EdgeData(object):
     def __init__(self, i, j, iLabel=None, jLabel=None, edgeLabel=None) -> None:
         self.i = i 
@@ -14,6 +15,7 @@ class EdgeData(object):
         self.iLabel = iLabel
         self.jLabel = jLabel
         self.edgeLabel = edgeLabel
+
 
 class Graph(object):
     def __init__(self, label:int, vertex_list=[], edge_list={}) -> None:
@@ -110,6 +112,7 @@ class Graph(object):
             X[i,j] = edgeLabel
         # return X + X.T
         return X
+
 
 def cox_data_processor(
         adj_file:str,

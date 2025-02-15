@@ -9,6 +9,7 @@ from typing import Callable
 
 from .constant import __ELEMENT_TYPE__, __INDEX_TYPE__, __RECOVER_STEP__
 
+
 def matrix_confusion(X:np.ndarray, ind: Callable[[int, int, int, int], int], shift=1):
     '''
     Confuse the matrix from both 0-element inference attack and frequency analysis attack.
@@ -55,6 +56,7 @@ def get_sparse(X:np.ndarray):
             sparse.append((j, i))
     return sparse
 
+
 def get_edge(X:np.ndarray):
     '''
     Get all the non-zero entries' indices.
@@ -68,6 +70,7 @@ def get_edge(X:np.ndarray):
         if X[j, i] != 0:
             sparse.append((j, i))
     return sparse
+
 
 def matrix_correction(W:np.ndarray, sparse_1, sparse_2, edge_1, edge_2, n_1, n_2):
     '''
@@ -91,8 +94,10 @@ def matrix_correction(W:np.ndarray, sparse_1, sparse_2, edge_1, edge_2, n_1, n_2
 
     return W
 
+
 def key_generator():
     return randint(low=np.iinfo(__ELEMENT_TYPE__).min, high=np.iinfo(__ELEMENT_TYPE__).max, dtype=np.int64) # 64-bit key
+
 
 def xor_encryption(X:np.ndarray, key:__ELEMENT_TYPE__):
     '''
@@ -103,6 +108,7 @@ def xor_encryption(X:np.ndarray, key:__ELEMENT_TYPE__):
     dtype_check(X)
     return X ^ (key*(np.ones_like(X, dtype=X.dtype)-np.eye(X.shape[0], dtype=X.dtype)))
 
+
 def vertex_encryption(X:np.ndarray, key:__ELEMENT_TYPE__, shuffle=False):
     '''
     Encrypt graph vertex list in element-wise manner, using XOR method.
@@ -111,6 +117,7 @@ def vertex_encryption(X:np.ndarray, key:__ELEMENT_TYPE__, shuffle=False):
     if shuffle:
         np.random.shuffle(X)
     return X ^ (key*(np.ones_like(X, dtype=X.dtype)))
+
 
 def tuple_list_encoder(index_list:list):
     '''
@@ -124,6 +131,7 @@ def tuple_list_encoder(index_list:list):
     byte_stream = bytes(compressed_array)
     return byte_stream
 
+
 def tuple_list_decoder(byte_stream:bytes, byte_order='little'):
     '''
     Convert byte array to list like [i, j, ...] and further convert it to
@@ -134,6 +142,7 @@ def tuple_list_decoder(byte_stream:bytes, byte_order='little'):
         recover_list.append((int.from_bytes(byte_stream[i:i+__RECOVER_STEP__], byteorder=byte_order),
                              int.from_bytes(byte_stream[i+__RECOVER_STEP__:i+2*__RECOVER_STEP__], byteorder=byte_order)))
     return recover_list
+
 
 def byte_stream_encryption(byte_stream:bytes, key:bytes):
     '''
@@ -157,10 +166,12 @@ def byte_stream_encryption(byte_stream:bytes, key:bytes):
     ciphertext, tag = cipher.encrypt_and_digest(bytes(byte_stream))
     return ciphertext, tag, cipher.nonce
 
+
 def byte_stream_decryption(key, ciphertext, tag, nonce):
     cipher = AES.new(key, AES.MODE_EAX, nonce)
     plaintext = cipher.decrypt_and_verify(ciphertext, tag)
     return plaintext
+
 
 def dtype_check(X:np.ndarray):
     '''
@@ -169,8 +180,10 @@ def dtype_check(X:np.ndarray):
     assert X.dtype == __ELEMENT_TYPE__, 'Only accept arrays with dtype==np.int64'
     return None
 
+
 def matrix_key_generation():
     return 3.97+0.03*rand()
+
 
 def matrix_encryption(M:np.ndarray, key_0, key_1):
     '''
@@ -188,6 +201,7 @@ def matrix_encryption(M:np.ndarray, key_0, key_1):
         beta[b_i] = U_1
     A, B = csc_matrix(np.diag(alpha)), csc_matrix(np.diag(beta))
     return A@M@B, A, B
+
 
 def matrix_decryption(M, A, B):
     return A@M@B

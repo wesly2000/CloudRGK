@@ -38,6 +38,7 @@ class DataHash():
             hashed_data.append(self.record_hash(d))
         return hashed_data
 
+
 def cox_single_graph_hash(graph: Graph):
     '''
     Hash cox-data-like graph data into hashed graph.
@@ -54,6 +55,7 @@ def cox_single_graph_hash(graph: Graph):
         )
     hash_graph = Graph(label=graph.label, vertex_list=graph.vertex_list, edge_list=hash_edge)
     return hash_graph
+
 
 def cox_graph_hash(graphs):
     '''
